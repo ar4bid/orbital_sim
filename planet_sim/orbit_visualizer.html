@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<style>
+			html, body{
+			margin:0;
+			}
+			#p1 {
+			width: 10px;
+			height: 10px;
+			background: #6da0ed;
+			border-radius: 50%;
+			position: absolute; 
+			}
+			#p2 {
+			width: 100px;
+			height: 100px;
+			background: #ffd754;
+			border-radius: 50%;
+			position: absolute; 
+			}
+			#p3 {
+			width: 5px;
+			height: 5px;
+			background: #555;
+			border-radius: 50%;
+			position: absolute; 
+			}
+		</style>
+		<script src="Body.js" type="text/javascript"></script>
+		<script>
+			var center_x = document.documentElement.clientWidth / 2;
+			var center_y = document.documentElement.clientHeight / 2;
+			var timestep = 0.5;
+
+			var bodies = [];
+
+			function setupSVG(){
+				let svg = document.getElementById("svg");
+				svg.setAttributeNS(null, 'width', center_x*2);	
+				svg.setAttributeNS(null, 'height', center_y*2);	
+				svg.setAttributeNS(null, 'onmousedown', "mouseDown(event)");	
+				svg.setAttributeNS(null, 'onmouseup', "predictionDone(event)");	
+				svg.setAttributeNS(null, 'onmouseleave', "predictionDone(event)");	
+				svg.setAttributeNS(null, 'onmousemove', "updateMousePos(event)");	
+			}
+
+			var id_count = 0;
+			var new_x_vel = 0;
+			var new_y_vel = 0;
+			var mouse_down_x = 0;
+			var mouse_down_y = 0;
+			var prediction_updater_id;
+			var mouse_x = 0;
+			var mouse_y = 0;		
+			var prediction_is_active = false;
+	
+			function updateMousePos(event){
+				mouse_x = event.offsetX;
+				mouse_y = event.offsetY;
+			}
+
+			/*
+			* Show SVG of new planet and trigger the showing of the predicted path 
+			*/	
+			function mouseDown(event){
+				show_prediction = true;
+				id_count++;
+				let planet_id = "p" + id_count; 
+				mouse_down_x = event.offsetX;
+				mouse_down_y = event.offsetY;
+				let radius = document.getElementById("slider").value; 
+				let fill = "blue"
+				createCircle(planet_id, mouse_down_x, mouse_down_y, radius, fill);
+				prediction_updater_id = setInterval(showPrediction, 5);
+			}
+		
+			var first_pass = true;	
+			/*
+				While the mouse is held this function will show the predicted path that a new planet 
+				will take. This function starts by deleting any previous prediction paths and then
+				creates a new one.
+			*/
+			function showPrediction(event){
+				prediction_is_active = true;
+				//this if and for used to delete the SVG prediction path
+				if(!first_pass){
+					for(i=0; i<10; i++){
+						deleteChild("l" + i);
+					}
+				}
+				first_pass = false;
+				let radius = document.getElementById("slider").value; 
+				let temp_body = new Body("pt", mouse_down_x, mouse_down_y, 0, 0, radius);
+				let circle;
+				temp_body.x_vel = (mouse_down_x - mouse_x) / 10;	
+				temp_body.y_vel = (mouse_down_y - mouse_y) / 10;
+				let x_points = [];
+				let y_points = [];
+				for(let i=0; i<11; i++){
+					dot_id = "d" + i;
+					temp_body.update(10, bodies);
+					x_points[i] = temp_body.x_pos;
+					y_points[i] = temp_body.y_pos;
+				}
+				for(let i=0; i<10; i++){
+					let next_x = x_points[i+1] - x_points[i]; 
+					let next_y = y_points[i+1] - y_points[i]; 
+					createLine("l" + i, x_points[i], y_points[i], next_x, next_y, 'red');
+				}
+				delete temp_body;
+			}
+
+			function createLine(id, x1, y1, x2, y2, colour){
+				let svg = document.getElementById("svg");
+				let arc = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+				svg.appendChild(arc);
+				arc.setAttributeNS(null, 'id', id)
+				let d = "M " + x1 + " " + y1 + " "+ "l " + x2 + " "+ y2;
+				arc.setAttributeNS(null, 'd', d);
+				arc.setAttributeNS(null, 'stroke', colour);
+				arc.setAttributeNS(null, 'fill', "none"); 
+			}
+			
+			function deleteChild(id){
+				let svg = document.getElementById("svg");
+				let child = document.getElementById(id);
+				svg.removeChild(child);
+			}
+
+			/*
+			* This function is used to create SVG circles. Physics bodies are created in predictionDone().
+			*/
+			function createCircle(id, x, y, r, fill){
+				let svg = document.getElementById("svg");
+				let circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+				svg.appendChild(circle); 
+				circle.setAttributeNS(null, 'id', id);
+				circle.setAttributeNS(null, 'cx', x);
+				circle.setAttributeNS(null, 'cy', y);
+				circle.setAttributeNS(null, 'r', r);
+				circle.setAttributeNS(null, 'fill', fill);
+			}
+
+			/*
+			* When the mouse button is lifted or the curser leaves the screen the predicted path
+			* is removed and the new parameters are passed to create a new physics body
+			*/	
+			function predictionDone(event){
+				//handle the case when the curser leaves the screen but the mouse wasn't clicked 
+				if(!prediction_is_active){
+					return;		
+				}
+				let planet_id = "p" + id_count;
+				let radius = document.getElementById("slider").value; 
+				bodies.push(new Body(planet_id, mouse_down_x, mouse_down_y, 0, 0, radius));
+				let x = event.offsetX;
+				let y = event.offsetY;
+				let b = bodies[bodies.length -1];
+				b.x_vel = (mouse_down_x - x) / 10;	
+				b.y_vel = (mouse_down_y - y) / 10;
+				clearInterval(prediction_updater_id);
+				first_pass = true;
+				for(i=0; i<10; i++){
+					deleteChild("l" + i);
+				}
+				prediction_is_active = false;
+			}
+
+			function createAsteroidScatter(){
+				let x_max = center_x * 2;
+				let y_max = center_y * 2;
+				for(i=0; i<300; i++){
+					id_count++;
+					asteroid_id = "p" + id_count;
+					x = Math.random()*x_max;
+					y = Math.random()*y_max;
+					bodies.push(new Body(asteroid_id, x, y, 0, 0, 3));
+					createCircle(asteroid_id, x, y, 3, "#555")
+				}
+			}
+	
+			function createAsteroidBelt(){
+				let r1 = 150;
+				let r2 = 300;
+				for(i=0; i<100; i++){
+					createAsteroid(r1, r2, 2700);
+				}
+			}
+
+			function createAsteroid(r1, r2, center_mass){
+				id_count++;
+				let asteroid_id = "p" + id_count;
+				let R = Math.random()*(r2-r1) + r1;	
+				let theta = Math.random()*2*Math.PI;
+				let x = -R*Math.cos(theta) + center_x;
+				let y = R*Math.sin(theta) + center_y;
+				let vel_mag = Math.sqrt(center_mass/R);	
+				let x_vel = -vel_mag*Math.sin(theta);
+				let y_vel = -vel_mag*Math.cos(theta);
+				bodies.push(new Body(asteroid_id, x, y, x_vel, y_vel, 3));
+				createCircle(asteroid_id, x, y, 3, "#555")
+			}
+
+			function clearSim(){
+				bodies = [];
+				id_count = 0;
+				let svg = document.getElementById("svg");
+				child = svg.lastElementChild;
+				while(child){
+					svg.removeChild(child);
+					child = svg.lastElementChild;
+				}
+			}
+
+			var sim_running = false;
+			var interval_id;
+			function toggle_sim(){
+				if(sim_running){
+					sim_running = false;
+					let button = document.getElementById("toggle_btn");
+					button.style = "color:red";
+					clearInterval(interval_id);
+				} else {
+					sim_running = true;
+					let button = document.getElementById("toggle_btn");
+					button.style = "color:green";
+					interval_id = setInterval(stepSim, 1);
+				}
+				function stepSim(){
+					for(let i=0; i<bodies.length; i++){
+						bodies[i].update(timestep, bodies);
+						if(bodies[i].detectCollision(bodies)){
+							deleteChild(bodies[i].id);
+							bodies.splice(i,1);
+						} else {
+						bodies[i].draw();
+						}	
+					}
+				}
+			}
+		</script>
+	</head>
+	
+	<body style="background-color:white" onload="setupSVG()">
+		<h1 style="margin : 10px">Orbit Visualizer
+			<button style="color:red" id ="toggle_btn" onclick="toggle_sim()">Toggle Sim</button>
+			<button onclick="clearSim()">Clear Sim</button>
+			<button onclick="createAsteroidBelt()">Asteroid Belt</button>
+			<button onclick="createAsteroidScatter()">Asteroid Scatter</button>
+			<input id="slider" type="range" min="3" max="30" value="6">
+		</h2>
+		<svg onmousemove id ="svg" width="100" height="100">
+		</svg>
+	</body>
+
+</html>
+
