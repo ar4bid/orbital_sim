@@ -6,40 +6,93 @@
 			html, body{
 			margin:0;
 			}
-			#p1 {
-			width: 10px;
-			height: 10px;
-			background: #6da0ed;
-			border-radius: 50%;
-			position: absolute; 
+			ul{
+				list-style-type: none;
+				margin: 0;
+				padding: 0;
+				overflow: hidden;
+				background-color: #333;
 			}
-			#p2 {
-			width: 100px;
-			height: 100px;
-			background: #ffd754;
-			border-radius: 50%;
-			position: absolute; 
+			li{
+				float : left;
 			}
-			#p3 {
-			width: 5px;
-			height: 5px;
-			background: #555;
-			border-radius: 50%;
-			position: absolute; 
+			li a{
+				display: block;
+				color: white;
+				text-align: center;
+				padding: 14px 16px;
+				text-decoration: none;
 			}
+			li a:hover{
+				background-color: #111; 
+			}
+			.pop_up {
+			  display: none; /* Hidden by default */
+			  position: fixed; /* Stay in place */
+			  z-index: 1; /* Sit on top */
+			  padding-top: 100px; /* Location of the box */
+			  left: 0;
+			  top: 0;
+			  width: 100%; /* Full width */
+			  height: 100%; /* Full height */
+			  overflow: auto; /* Enable scroll if needed */
+			  background-color: rgb(0,0,0); /* Fallback color */
+			  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+			}
+			.pop_up_context{
+				background-color: #fefefe;
+				margin: auto;
+				padding: 20px;
+				border: 1px solid #888;
+				width: 80%;
+			}
+			/*Close button for pop up*/
+			.close {
+				color: #aaaaaa;
+				float: right;
+				font-size 28px;
+				font-weight: bold;
+			}
+			.close:hover, .close:focus{
+				color: #000;
+				text-decoration: none;
+				cursor: pointer;
+			}
+			.dropdown{
+				position: relative;
+				display: inline-block;
+			}	
+			.dropdown-content{
+				 display: none;
+				 position: absolute;
+				 background-color: #333;
+				 min-width: 160px;
+				 overflow: auto;
+				 box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+				 z-index: 1;	
+			}	
+			.dropdown-content a{
+				color: white;
+				padding: 12px 16px;
+				text-decoration: none;
+				display: block;
+			}
+			.dropdown a:hover {background-color: #111}
 		</style>
 		<script src="Body.js" type="text/javascript" mode="no-cors"></script>
 		<script>
+
+
+			/*** Setup portion of the script ***/
+
 			var center_x = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0) / 2;
 			var center_y = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0) / 2;
-			console.log("Center X:" + center_x); 
-			console.log("Center Y:" + center_y); 
 			var timestep = 0.5;
 
 			var bodies = [];
 
 			function setupSVG(){
-				console.log("Setup SVG has been run.");
+				openPopUp();
 				let svg = document.getElementById("svg");
 				svg.setAttributeNS(null, 'width', center_x*2);	
 				svg.setAttributeNS(null, 'height', center_y*2);	
@@ -49,6 +102,7 @@
 				svg.setAttributeNS(null, 'onmousemove', "updateMousePos(event)");	
 			}
 
+			/*Creating some useful globals*/	
 			var id_count = 0;
 			var new_x_vel = 0;
 			var new_y_vel = 0;
@@ -59,11 +113,48 @@
 			var mouse_y = 0;		
 			var prediction_is_active = false;
 	
+			/***Setup Done ***/
+			
+			function openPopUp(){
+				var popup = document.getElementById("popup");
+				popup.style.display = "block";
+			}
+
+			function closePopUp(){
+				var popup = document.getElementById("popup");
+				popup.style.display = "none";
+			}
+		
+			//close the pop up if user clicks on the outside of it
+			window.onclick = function(event){
+				var popup = document.getElementById("popup");
+				if(event.target == popup) {
+					popup.style.display = "none";
+				}	
+			}	
+
+			/*The following 4 functions handle the drop down menues*/	
+			function dropDownBelt(){
+				document.getElementById("belt_drop_down").style.display = "block";	
+			}
+
+			function rmDropDownBelt(){
+				document.getElementById("belt_drop_down").style.display = "none";	
+			}
+
+			function rmDropDownScatter(){
+				document.getElementById("scatter_drop_down").style.display = "none";	
+			}
+
+			function dropDownScatter(){
+				document.getElementById("scatter_drop_down").style.display = "block";	
+			}
+
 			function updateMousePos(event){
 				mouse_x = event.offsetX;
 				mouse_y = event.offsetY;
 			}
-
+			
 			/*
 			* Show SVG of new planet and trigger the showing of the predicted path 
 			*/	
@@ -74,7 +165,7 @@
 				mouse_down_x = event.offsetX;
 				mouse_down_y = event.offsetY;
 				let radius = document.getElementById("slider").value; 
-				let fill = "blue"
+				let fill = "#555"
 				createCircle(planet_id, mouse_down_x, mouse_down_y, radius, fill);
 				prediction_updater_id = setInterval(showPrediction, 5);
 			}
@@ -115,6 +206,9 @@
 				delete temp_body;
 			}
 
+			/*
+			* createline used in predictive path when user clicks to add a new planet
+			*/
 			function createLine(id, x1, y1, x2, y2, colour){
 				let svg = document.getElementById("svg");
 				let arc = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -126,6 +220,9 @@
 				arc.setAttributeNS(null, 'fill', "none"); 
 			}
 			
+			/*
+			* Deletes an SVG child
+			*/
 			function deleteChild(id){
 				let svg = document.getElementById("svg");
 				let child = document.getElementById(id);
@@ -171,10 +268,14 @@
 				prediction_is_active = false;
 			}
 
+			/*
+			* Creates a random scattering of asteroid across the whole svg plane
+			*/	
 			function createAsteroidScatter(){
+				let num_asteroids = document.getElementById("num_scatter_asteroids").value;
 				let x_max = center_x * 2;
 				let y_max = center_y * 2;
-				for(i=0; i<300; i++){
+				for(i=0; i<num_asteroids; i++){
 					id_count++;
 					asteroid_id = "p" + id_count;
 					x = Math.random()*x_max;
@@ -185,13 +286,27 @@
 			}
 	
 			function createAsteroidBelt(){
-				let r1 = 150;
-				let r2 = 300;
-				for(i=0; i<100; i++){
+				let inner_star_mass = 2700;
+				let num_asteroids = document.getElementById("num_belt_asteroids").value;
+				let check_box = document.getElementById("beltInnerStar").checked;  
+				if(check_box == true){
+					id_count++;
+					asteroid_id = "p" + id_count;
+					let radius = Math.pow(10*inner_star_mass,1/3) 
+					bodies.push(new Body(asteroid_id, center_x, center_y, 0, 0, radius));
+					createCircle(asteroid_id, center_x, center_y, radius, "#555");
+				}
+				let r1 = parseInt(document.getElementById("inner_radius").value);
+				let r2 = parseInt(document.getElementById("outter_radius").value);
+				for(i=0; i<num_asteroids; i++){
 					createAsteroid(r1, r2, 2700);
 				}
 			}
 
+			/*
+			* This function is a helper for asteroid belt creating. This function creates a single asteroid
+			* between the radius r1 and r2 where center point is the middle of the SVG plane. 
+			*/		
 			function createAsteroid(r1, r2, center_mass){
 				id_count++;
 				let asteroid_id = "p" + id_count;
@@ -206,6 +321,9 @@
 				createCircle(asteroid_id, x, y, 3, "#555")
 			}
 
+			/*
+			* This function wipes clean all SVG children, all physics bodies and resets the id cound.
+			*/
 			function clearSim(){
 				bodies = [];
 				id_count = 0;
@@ -224,11 +342,13 @@
 					sim_running = false;
 					let button = document.getElementById("toggle_btn");
 					button.style = "color:red";
+					button.innerHTML = "Simulation Stopped";
 					clearInterval(interval_id);
 				} else {
 					sim_running = true;
 					let button = document.getElementById("toggle_btn");
 					button.style = "color:green";
+					button.innerHTML = "Simulation Running";
 					interval_id = setInterval(stepSim, 1);
 				}
 				function stepSim(){
@@ -247,13 +367,60 @@
 	</head>
 	
 	<body style="background-color:white" onload="setupSVG()">
-		<h1 style="margin : 10px">Orbit Visualizer
-			<button style="color:red" id ="toggle_btn" onclick="toggle_sim()">Toggle Sim</button>
-			<button onclick="clearSim()">Clear Sim</button>
-			<button onclick="createAsteroidBelt()">Asteroid Belt</button>
-			<button onclick="createAsteroidScatter()">Asteroid Scatter</button>
-			<input id="slider" type="range" min="3" max="30" value="6">
-		</h2>
+			<div id="popup" class="pop_up">
+				<div class="pop_up_context">
+					<span onclick="closePopUp()"class="close">&times;</span>
+					<p>Welcome to the orbital simulator!<br><br> 
+					-<b>Run the simulator</b> by clicking the "Simulation Stopped" button in the top left corner.<br>
+					-<b>Add planets</b> by simply clicking anywhere on the screen. Use the "Planet Size" slider to choose how big a planet you would like to add. Larger planets have more mass and therefore more gravity. <br>
+					-<b>Add a planet with velocity</b> by clicking and holding your mouse and pull back like a slingshot. You'll see a red path of where the planet will go. Release to fire the planet. <br>
+					-Watch how an asteroid belt becomes a planet under the "Asteroid Belt" tab. <br>
+					-Watch how a random distributaion of small asteroids can form a solar system structure under the "Asteroid Scatter" tab. Note that due to the random nature of things sometimes you'll just get a single star and no planets.<br>
+					-<b>See this window again</b> by clicking "Help"<br>
+					<br><br>Source for this simulator can be found at: https://github.com/ar4bid/orbital_sim/tree/master/planet_sim</p>
+				</div>
+			</div> 
+			<ul>
+				<li onclick="toggle_sim()" ><a style="color:red" id = "toggle_btn" class="active">Simulation Stopped</a></li>
+				<li onclick="clearSim()"><a>Clear Page</a></li>
+				<li onmouseleave="rmDropDownBelt()" onmouseover="dropDownBelt()"><a>Asteroid Belt</a>
+					<div id="belt_drop_down" class="dropdown-content">
+						<a> 
+							<label>Inner radius:</label>
+							<input type="number" id="inner_radius" name="inner_radius" value="150"> 
+						</a>
+						<a> 
+							<label>Outter radius:</label> 
+							<input type="number" id="outter_radius" name="inner_radius" value="250"> 
+						</a>
+						<a> 
+							<label>Number of asteroids:</label> 
+							<input type="number" id="num_belt_asteroids" name="num_belt_asteroids" value="100"> 
+						</a>
+						<a>
+							<label>Create central star?</label>
+							<input type="checkbox" id="beltInnerStar" checked="true">
+						</a>
+						<a onclick="createAsteroidBelt()" style="outline-style:solid">
+							Create Asteroid Belt
+						</a>
+					</div>
+				</li>
+				<li onmouseleave="rmDropDownScatter()" onmouseover="dropDownScatter()"><a>Asteroid Scatter</a>
+					<div id="scatter_drop_down" class="dropdown-content">
+						<a> 
+							<label>Number of asteroids:</label>
+							<input type="number" id="num_scatter_asteroids" name="num_scatter_asteroids" value="300"> 
+						</a>
+						<a onclick="createAsteroidScatter()" style="outline-style:solid">
+							Create Asteroid Scatter 
+						</a>
+					</div>
+				</li>
+				<li onclick="openPopUp()"><a> Help </a></li>
+			</ul>
+					<h4 style="float:left; margin:8px;"> Planet Size</h4>
+					<input id="slider" type="range" min="3" max="30" value="6" style="margin:10px" style="float:left">
 		<svg onmousemove id ="svg" width="100" height="100">
 		</svg>
 	</body>
