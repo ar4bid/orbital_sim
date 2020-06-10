@@ -30,8 +30,8 @@
 		</style>
 		<script src="Body.js" type="text/javascript"></script>
 		<script>
-			var center_x = document.documentElement.clientWidth / 2;
-			var center_y = document.documentElement.clientHeight / 2;
+			var center_x = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0) / 2;
+			var center_y = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0) / 2;
 			var timestep = 0.5;
 
 			var bodies = [];
