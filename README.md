@@ -4,7 +4,7 @@ This is an orbital simulator written by Alex White.
 
 ## JS Simulator
 
-This simulator was simply a passion project written to observe the emergence of solar system structrues due to gravitational laws. This was written in HTML/CSS/JavaScript with new exterior frameworks or libraries. This project does not follow SI units but instead uses arbitrary units such the orbiting planets would be observed on the user's screen. The project can easily be run by visiting https://ar4bid.github.io/orbital_simm/   
+This simulator was simply a passion project written to observe the emergence of solar system structrues due to gravitational laws. This was written in HTML/CSS/JavaScript with no exterior frameworks or libraries. This project does not follow SI units but instead uses arbitrary units such that the orbiting planets would be observed on the user's screen. The project can easily be run by visiting https://ar4bid.github.io/orbital_simm/   
 
 ## Python Simulator
 
