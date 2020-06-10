@@ -32,11 +32,14 @@
 		<script>
 			var center_x = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0) / 2;
 			var center_y = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0) / 2;
+			console.log("Center X:" + center_x); 
+			console.log("Center Y:" + center_y); 
 			var timestep = 0.5;
 
 			var bodies = [];
 
 			function setupSVG(){
+				console.log("Setup SVG has been run.");
 				let svg = document.getElementById("svg");
 				svg.setAttributeNS(null, 'width', center_x*2);	
 				svg.setAttributeNS(null, 'height', center_y*2);	
