@@ -2,11 +2,11 @@
 
 This is an orbital simulator written by Alex White.
 
-## JS Simulator
+## Planet Simulator (JS)
 
 This simulator was simply a passion project written to observe the emergence of solar system structrues due to gravitational laws. This was written in HTML/CSS/JavaScript with no exterior frameworks or libraries. This project does not follow SI units but instead uses arbitrary units such that the orbiting planets would be observed on the user's screen. The project can easily be run by visiting https://ar4bid.github.io/orbital_sim/   
 
-## Python Simulator
+## Sat Simulator (Python)
 
 This simulator was primarily written for the Queen's Space Engineering Team to perform orbit predictions of a cubesat mission.
 
